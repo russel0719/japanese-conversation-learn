@@ -1,101 +1,108 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { curriculum } from '@/data/curriculum';
+import { getProgress, UnitProgress } from '@/lib/progress';
+import { getWrongCount } from '@/lib/wrongAnswers';
+import { getFavoriteCount } from '@/lib/favorites';
+import UnitCard from '@/components/UnitCard';
+
+export default function HomePage() {
+  const router = useRouter();
+  const [progress, setProgress] = useState<Record<number, UnitProgress>>({});
+  const [wrongCount, setWrongCount] = useState(0);
+  const [favCount, setFavCount] = useState(0);
+
+  useEffect(() => {
+    setProgress(getProgress());
+    setWrongCount(getWrongCount());
+    setFavCount(getFavoriteCount());
+  }, []);
+
+  const totalDone = Object.values(progress).filter(p => p.learnCompleted && p.quizCompleted).length;
+  const learnDone = Object.values(progress).filter(p => p.learnCompleted).length;
+  const pct = Math.round((totalDone / curriculum.length) * 100);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-[#f8f9ff]">
+      {/* 헤더 */}
+      <div className="bg-indigo-600 text-white px-4 pt-10 pb-6">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-3xl font-bold mb-1">🇯🇵 일본어 회화</div>
+          <div className="text-indigo-200 text-sm mb-4">25개 Unit · 체계적인 커리큘럼</div>
+          <div className="bg-indigo-500/40 rounded-2xl p-3 flex items-center gap-4">
+            <div className="flex-1">
+              <div className="text-xs text-indigo-200 mb-1.5">전체 진도</div>
+              <div className="h-2.5 bg-indigo-400/50 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-white rounded-full transition-all duration-700"
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+            <div className="text-right flex-shrink-0">
+              <div className="text-2xl font-bold">{totalDone}<span className="text-sm font-normal text-indigo-200">/{curriculum.length}</span></div>
+              <div className="text-xs text-indigo-200">{pct}%</div>
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
+
+      {/* 기능 버튼 그리드 */}
+      <div className="max-w-2xl mx-auto px-4 pt-5 pb-1">
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            {
+              emoji: '🔄', label: '랜덤 복습', sub: learnDone > 0 ? `${learnDone}개 Unit` : '학습 후 활성화',
+              active: learnDone > 0, path: '/review', color: 'bg-indigo-500',
+            },
+            {
+              emoji: '🔍', label: '표현 검색', sub: `전체 ${curriculum.reduce((s, u) => s + u.phrases.length, 0)}개`,
+              active: true, path: '/search', color: 'bg-teal-500',
+            },
+            {
+              emoji: '❌', label: '오답 노트', sub: wrongCount > 0 ? `${wrongCount}개` : '오답 없음',
+              active: wrongCount > 0, path: '/wrong', color: 'bg-red-500',
+            },
+            {
+              emoji: '⭐', label: '즐겨찾기', sub: favCount > 0 ? `${favCount}개` : '즐겨찾기 없음',
+              active: favCount > 0, path: '/favorites', color: 'bg-yellow-500',
+            },
+          ].map(item => (
+            <button
+              key={item.path}
+              onClick={() => item.active && router.push(item.path)}
+              className={`rounded-2xl p-4 text-left transition-all active:scale-95
+                ${item.active ? `${item.color} text-white shadow-sm` : 'bg-gray-100 text-gray-400'}`}
+            >
+              <div className="text-2xl mb-1">{item.emoji}</div>
+              <div className="font-semibold text-sm">{item.label}</div>
+              <div className={`text-xs mt-0.5 ${item.active ? 'text-white/70' : 'text-gray-400'}`}>{item.sub}</div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 커리큘럼 목록 */}
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-2.5">
+        {curriculum.map((unit, idx) => {
+          const unitProgress: UnitProgress = progress[unit.id] ?? {
+            unitId: unit.id,
+            learnCompleted: false,
+            quizCompleted: false,
+            lastVisited: '',
+          };
+          const prevProgress = idx > 0 ? progress[curriculum[idx - 1].id] : null;
+          const locked = idx > 0 && !prevProgress?.learnCompleted;
+
+          return (
+            <UnitCard key={unit.id} unit={unit} progress={unitProgress} locked={locked} />
+          );
+        })}
+      </div>
+
+      <div className="h-8" />
     </div>
   );
 }
