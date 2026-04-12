@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Phrase } from '@/data/curriculum';
 import { isFavorite, toggleFavorite } from '@/lib/favorites';
+import { getVolume } from '@/lib/audioSettings';
 
 interface PhraseCardProps {
   phrase: Phrase;
@@ -18,6 +19,7 @@ function speakJapanese(text: string, onStart: () => void, onEnd: () => void) {
   const utter = new SpeechSynthesisUtterance(text);
   utter.lang = 'ja-JP';
   utter.rate = 0.85;
+  utter.volume = getVolume();
   utter.onstart = onStart;
   utter.onend = onEnd;
   utter.onerror = onEnd;

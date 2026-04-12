@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
 import { Phrase, DialogLine } from '@/data/curriculum';
+import { getVolume } from '@/lib/audioSettings';
 
 interface QuizEngineProps {
   phrases: Phrase[];
@@ -10,7 +11,7 @@ interface QuizEngineProps {
   onWrongAnswers?: (wrongs: Phrase[]) => void;
 }
 
-type QuizType = 'ko-to-jp' | 'jp-to-ko' | 'romaji-to-jp' | 'fill-blank';
+type QuizType = 'ko-to-romaji' | 'romaji-to-ko' | 'audio-to-ko' | 'fill-blank-romaji';
 
 interface Question {
   type: QuizType;
@@ -19,7 +20,7 @@ interface Question {
   answer: string;
   options: string[];
   label: string;
-  phraseRef: Phrase;  // 원본 표현 참조 (오답 저장용)
+  phraseRef: Phrase;
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -36,54 +37,71 @@ function makeOptions(correct: string, pool: string[], count = 4): string[] {
   return shuffle([correct, ...others]);
 }
 
+function speakText(text: string, volume: number, onStart: () => void, onEnd: () => void) {
+  if (typeof window === 'undefined' || !window.speechSynthesis) {
+    onEnd();
+    return;
+  }
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text);
+  utter.lang = 'ja-JP';
+  utter.rate = 0.85;
+  utter.volume = volume;
+  utter.onstart = onStart;
+  utter.onend = onEnd;
+  utter.onerror = onEnd;
+  window.speechSynthesis.speak(utter);
+}
+
 function buildQuestions(phrases: Phrase[], dialogLines: DialogLine[]): Question[] {
   const questions: Question[] = [];
 
-  // Type A: 한국어 → 일본어
+  // Type 1: 한국어 → 발음(romaji)
   for (const p of phrases) {
     questions.push({
-      type: 'ko-to-jp', label: '한→일',
+      type: 'ko-to-romaji', label: '한→발음',
       prompt: p.korean,
-      answer: p.japanese,
-      options: makeOptions(p.japanese, phrases.map(x => x.japanese)),
+      answer: p.romaji,
+      options: makeOptions(p.romaji, phrases.map(x => x.romaji)),
       phraseRef: p,
     });
   }
 
-  // Type B: 일본어 → 한국어
+  // Type 2: 발음(romaji) → 한국어
   for (const p of phrases) {
     questions.push({
-      type: 'jp-to-ko', label: '일→한',
-      prompt: p.japanese, promptSub: p.romaji,
+      type: 'romaji-to-ko', label: '발음→한',
+      prompt: p.romaji,
       answer: p.korean,
       options: makeOptions(p.korean, phrases.map(x => x.korean)),
       phraseRef: p,
     });
   }
 
-  // Type C: 로마자 → 일본어
+  // Type 3: 음성 듣고 → 한국어 (prompt에 일본어 저장, TTS 재생용)
   for (const p of phrases) {
     questions.push({
-      type: 'romaji-to-jp', label: '발음→일',
-      prompt: p.romaji,
-      answer: p.japanese,
-      options: makeOptions(p.japanese, phrases.map(x => x.japanese)),
+      type: 'audio-to-ko', label: '듣기→한',
+      prompt: p.japanese,
+      answer: p.korean,
+      options: makeOptions(p.korean, phrases.map(x => x.korean)),
       phraseRef: p,
     });
   }
 
-  // Type D: 대화 빈칸 채우기
+  // Type 5: 대화 romaji 빈칸 채우기
   for (const line of dialogLines) {
     const matched = phrases.find(p =>
-      line.japanese.includes(p.japanese) && p.japanese.length > 2
+      line.romaji.toLowerCase().includes(p.romaji.toLowerCase()) && p.romaji.length > 3
     );
     if (!matched) continue;
-    const blanked = line.japanese.replace(matched.japanese, '＿＿＿');
+    const escaped = matched.romaji.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const blanked = line.romaji.replace(new RegExp(escaped, 'i'), '＿＿＿');
     questions.push({
-      type: 'fill-blank', label: '빈칸',
+      type: 'fill-blank-romaji', label: '빈칸',
       prompt: blanked, promptSub: line.korean,
-      answer: matched.japanese,
-      options: makeOptions(matched.japanese, phrases.map(x => x.japanese)),
+      answer: matched.romaji,
+      options: makeOptions(matched.romaji, phrases.map(x => x.romaji)),
       phraseRef: matched,
     });
   }
@@ -92,10 +110,17 @@ function buildQuestions(phrases: Phrase[], dialogLines: DialogLine[]): Question[
 }
 
 const TYPE_COLOR: Record<QuizType, string> = {
-  'ko-to-jp': 'bg-indigo-100 text-indigo-700',
-  'jp-to-ko': 'bg-emerald-100 text-emerald-700',
-  'romaji-to-jp': 'bg-violet-100 text-violet-700',
-  'fill-blank': 'bg-amber-100 text-amber-700',
+  'ko-to-romaji': 'bg-indigo-100 text-indigo-700',
+  'romaji-to-ko': 'bg-emerald-100 text-emerald-700',
+  'audio-to-ko': 'bg-violet-100 text-violet-700',
+  'fill-blank-romaji': 'bg-amber-100 text-amber-700',
+};
+
+const TYPE_DESC: Record<QuizType, string> = {
+  'ko-to-romaji': '한국어를 보고 발음을 고르세요',
+  'romaji-to-ko': '발음을 보고 한국어 뜻을 고르세요',
+  'audio-to-ko': '발음을 듣고 한국어 뜻을 고르세요',
+  'fill-blank-romaji': '빈칸에 알맞은 발음을 고르세요',
 };
 
 export default function QuizEngine({ phrases, dialogLines, onComplete, onWrongAnswers }: QuizEngineProps) {
@@ -104,9 +129,20 @@ export default function QuizEngine({ phrases, dialogLines, onComplete, onWrongAn
   const [selected, setSelected] = useState<string | null>(null);
   const [correct, setCorrect] = useState(0);
   const [done, setDone] = useState(false);
+  const [audioPlaying, setAudioPlaying] = useState(false);
   const wrongPhrases = useRef<Phrase[]>([]);
 
   const q = questions[index];
+
+  // audio-to-ko 문제 진입 시 자동 재생
+  useEffect(() => {
+    if (q?.type === 'audio-to-ko') {
+      const timer = setTimeout(() => {
+        speakText(q.prompt, getVolume(), () => setAudioPlaying(true), () => setAudioPlaying(false));
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [index]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAnswer(opt: string) {
     if (selected) return;
@@ -115,7 +151,6 @@ export default function QuizEngine({ phrases, dialogLines, onComplete, onWrongAn
     if (isCorrect) {
       setCorrect(c => c + 1);
     } else {
-      // 오답이면 phraseRef 저장 (중복 제거)
       const already = wrongPhrases.current.some(p => p.japanese === q.phraseRef.japanese);
       if (!already) wrongPhrases.current.push(q.phraseRef);
     }
@@ -145,8 +180,9 @@ export default function QuizEngine({ phrases, dialogLines, onComplete, onWrongAn
           </div>
         )}
         <div className="grid grid-cols-2 gap-3 w-full max-w-xs text-sm text-center">
-          {(['ko-to-jp', 'jp-to-ko', 'romaji-to-jp', 'fill-blank'] as QuizType[]).map(t => {
+          {(['ko-to-romaji', 'romaji-to-ko', 'audio-to-ko', 'fill-blank-romaji'] as QuizType[]).map(t => {
             const typeQs = questions.filter(q => q.type === t);
+            if (typeQs.length === 0) return null;
             const typeLabel = typeQs[0]?.label ?? t;
             return (
               <div key={t} className="bg-gray-50 rounded-xl p-2">
@@ -185,14 +221,31 @@ export default function QuizEngine({ phrases, dialogLines, onComplete, onWrongAn
         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${TYPE_COLOR[q.type]}`}>
           {q.label}
         </span>
-        <span className="text-xs text-gray-400">
-          {{'ko-to-jp': '한국어를 보고 일본어를 고르세요', 'jp-to-ko': '일본어를 보고 한국어를 고르세요', 'romaji-to-jp': '발음을 보고 일본어를 고르세요', 'fill-blank': '빈칸에 알맞은 표현을 고르세요'}[q.type]}
-        </span>
+        <span className="text-xs text-gray-400">{TYPE_DESC[q.type]}</span>
       </div>
 
-      <div className="bg-indigo-50 rounded-2xl p-5 text-center min-h-[100px] flex flex-col items-center justify-center gap-1">
-        <div className="text-xl font-bold text-gray-800 leading-relaxed">{q.prompt}</div>
-        {q.promptSub && <div className="text-sm text-indigo-500">{q.promptSub}</div>}
+      <div className="bg-indigo-50 rounded-2xl p-5 text-center min-h-[100px] flex flex-col items-center justify-center gap-3">
+        {q.type === 'audio-to-ko' ? (
+          <>
+            <button
+              onClick={() => speakText(q.prompt, getVolume(), () => setAudioPlaying(true), () => setAudioPlaying(false))}
+              disabled={audioPlaying}
+              className={`w-16 h-16 rounded-full flex items-center justify-center text-2xl transition-all
+                ${audioPlaying
+                  ? 'bg-indigo-200 text-indigo-400 animate-pulse'
+                  : 'bg-indigo-200 text-indigo-700 active:scale-95 hover:bg-indigo-300'
+                }`}
+            >
+              {audioPlaying ? '▶' : '🔊'}
+            </button>
+            <div className="text-xs text-indigo-400">버튼을 눌러 다시 들어보세요</div>
+          </>
+        ) : (
+          <>
+            <div className="text-xl font-bold text-gray-800 leading-relaxed">{q.prompt}</div>
+            {q.promptSub && <div className="text-sm text-indigo-500">{q.promptSub}</div>}
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-2.5">

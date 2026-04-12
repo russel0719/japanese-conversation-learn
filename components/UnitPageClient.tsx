@@ -6,10 +6,13 @@ import { curriculum } from '@/data/curriculum';
 
 import { getUnitProgress, markLearnCompleted, markQuizCompleted, UnitProgress } from '@/lib/progress';
 import { addWrongAnswers } from '@/lib/wrongAnswers';
+import { getVolume, setVolume } from '@/lib/audioSettings';
 import PhraseCard from '@/components/PhraseCard';
 import QuizEngine from '@/components/QuizEngine';
 
 type Tab = 'learn' | 'quiz';
+
+const DEFAULT_VOLUME = 0.8;
 
 export default function UnitPageClient({ params }: { params: { id: string } }) {
   const { id } = params;
@@ -110,10 +113,36 @@ function LearnTab({ unit, completed, onComplete }: {
   completed: boolean;
   onComplete: () => void;
 }) {
+  const [volume, setVolumeState] = useState(DEFAULT_VOLUME);
+
+  useEffect(() => {
+    setVolumeState(getVolume());
+  }, []);
+
+  function handleVolumeChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const v = parseFloat(e.target.value);
+    setVolumeState(v);
+    setVolume(v);
+  }
+
   return (
     <div className="space-y-3">
-      <div className="text-sm text-gray-500 mb-4">
-        핵심 표현 {unit.phrases.length}개를 배워봅시다. 🔊 버튼으로 발음을 들어보세요.
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-sm text-gray-500">
+          핵심 표현 {unit.phrases.length}개를 배워봅시다.
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm">{volume === 0 ? '🔇' : volume < 0.5 ? '🔉' : '🔊'}</span>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={volume}
+            onChange={handleVolumeChange}
+            className="w-20 h-1.5 accent-indigo-600 cursor-pointer"
+          />
+        </div>
       </div>
 
       {unit.phrases.map((phrase, i) => (
@@ -180,7 +209,7 @@ function QuizTab({ unit, completed, onComplete }: {
         <p className="text-gray-500 text-center text-sm">
           4가지 유형으로 배운 표현을 테스트해봐요!<br />
           <span className="text-xs text-gray-400 mt-1 block">
-            한→일 · 일→한 · 발음→일 · 빈칸채우기
+            한→발음 · 발음→한 · 듣기→한 · 빈칸채우기
           </span>
         </p>
         <button
