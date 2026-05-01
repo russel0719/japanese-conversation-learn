@@ -1,27 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { curriculum } from '@/data/curriculum';
-import { getProgress, UnitProgress } from '@/lib/progress';
-import { getWrongCount } from '@/lib/wrongAnswers';
-import { getFavoriteCount } from '@/lib/favorites';
+import { useData } from '@/contexts/DataContext';
 import UnitCard from '@/components/UnitCard';
+import AuthButton from '@/components/AuthButton';
 
 export default function HomePage() {
   const router = useRouter();
-  const [progress, setProgress] = useState<Record<number, UnitProgress>>({});
-  const [wrongCount, setWrongCount] = useState(0);
-  const [favCount, setFavCount] = useState(0);
-
-  useEffect(() => {
-    setProgress(getProgress());
-    setWrongCount(getWrongCount());
-    setFavCount(getFavoriteCount());
-  }, []);
+  const { progress, favorites, wrongAnswers } = useData();
 
   const totalDone = Object.values(progress).filter(p => p.learnCompleted && p.quizCompleted).length;
   const learnDone = Object.values(progress).filter(p => p.learnCompleted).length;
+  const wrongCount = Object.keys(wrongAnswers).length;
+  const favCount = favorites.length;
   const pct = Math.round((totalDone / curriculum.length) * 100);
 
   return (
@@ -29,7 +21,10 @@ export default function HomePage() {
       {/* 헤더 */}
       <div className="bg-indigo-600 text-white px-4 pt-10 pb-6">
         <div className="max-w-2xl mx-auto">
-          <div className="text-3xl font-bold mb-1">🇯🇵 일본어 회화</div>
+          <div className="flex items-center justify-between mb-1">
+            <div className="text-3xl font-bold">🇯🇵 일본어 회화</div>
+            <AuthButton />
+          </div>
           <div className="text-indigo-200 text-sm mb-4">25개 Unit · 체계적인 커리큘럼</div>
           <div className="bg-indigo-500/40 rounded-2xl p-3 flex items-center gap-4">
             <div className="flex-1">
@@ -87,7 +82,7 @@ export default function HomePage() {
       {/* 커리큘럼 목록 */}
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-2.5">
         {curriculum.map((unit, idx) => {
-          const unitProgress: UnitProgress = progress[unit.id] ?? {
+          const unitProgress = progress[unit.id] ?? {
             unitId: unit.id,
             learnCompleted: false,
             quizCompleted: false,

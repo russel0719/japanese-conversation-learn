@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Phrase } from '@/data/curriculum';
-import { isFavorite, toggleFavorite } from '@/lib/favorites';
+import { useData } from '@/contexts/DataContext';
 import { getVolume } from '@/lib/audioSettings';
 
 interface PhraseCardProps {
@@ -27,16 +27,13 @@ function speakJapanese(text: string, onStart: () => void, onEnd: () => void) {
 }
 
 export default function PhraseCard({ phrase, index }: PhraseCardProps) {
+  const { favorites, toggleFavorite } = useData();
   const [playing, setPlaying] = useState(false);
-  const [fav, setFav] = useState(false);
 
-  useEffect(() => {
-    setFav(isFavorite(phrase.japanese));
-  }, [phrase.japanese]);
+  const fav = favorites.includes(phrase.japanese);
 
   function handleFav() {
-    const next = toggleFavorite(phrase.japanese);
-    setFav(next);
+    toggleFavorite(phrase.japanese);
   }
 
   function playTTS() {

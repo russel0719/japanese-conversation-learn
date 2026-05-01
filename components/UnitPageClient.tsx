@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { curriculum } from '@/data/curriculum';
-
-import { getUnitProgress, markLearnCompleted, markQuizCompleted, UnitProgress } from '@/lib/progress';
-import { addWrongAnswers } from '@/lib/wrongAnswers';
+import { useData } from '@/contexts/DataContext';
 import { getVolume, setVolume } from '@/lib/audioSettings';
 import PhraseCard from '@/components/PhraseCard';
 import QuizEngine from '@/components/QuizEngine';
@@ -19,17 +17,9 @@ export default function UnitPageClient({ params }: { params: { id: string } }) {
   const router = useRouter();
   const unitId = parseInt(id);
   const unit = curriculum.find(u => u.id === unitId);
+  const { progress, markLearnCompleted, markQuizCompleted, addWrongAnswers } = useData();
 
   const [tab, setTab] = useState<Tab>('learn');
-  const [progress, setProgress] = useState<UnitProgress | null>(null);
-
-  useEffect(() => {
-    setProgress(getUnitProgress(unitId));
-  }, [unitId]);
-
-  const refreshProgress = useCallback(() => {
-    setProgress(getUnitProgress(unitId));
-  }, [unitId]);
 
   if (!unit) {
     return (
@@ -38,6 +28,13 @@ export default function UnitPageClient({ params }: { params: { id: string } }) {
       </div>
     );
   }
+
+  const unitProgress = progress[unitId] ?? {
+    unitId,
+    learnCompleted: false,
+    quizCompleted: false,
+    lastVisited: '',
+  };
 
   const tabs: { key: Tab; label: string; emoji: string }[] = [
     { key: 'learn', label: '학습', emoji: '📖' },
@@ -78,10 +75,10 @@ export default function UnitPageClient({ params }: { params: { id: string } }) {
             >
               <span>{t.emoji}</span>
               <span>{t.label}</span>
-              {progress && (
-                ((t.key === 'learn' && progress.learnCompleted) ||
-                 (t.key === 'quiz' && progress.quizCompleted))
-              ) && <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />}
+              {((t.key === 'learn' && unitProgress.learnCompleted) ||
+                (t.key === 'quiz' && unitProgress.quizCompleted)) && (
+                <span className="w-1.5 h-1.5 bg-green-400 rounded-full" />
+              )}
             </button>
           ))}
         </div>
@@ -92,15 +89,16 @@ export default function UnitPageClient({ params }: { params: { id: string } }) {
         {tab === 'learn' && (
           <LearnTab
             unit={unit}
-            completed={progress?.learnCompleted ?? false}
-            onComplete={() => { markLearnCompleted(unitId); refreshProgress(); }}
+            completed={unitProgress.learnCompleted}
+            onComplete={() => markLearnCompleted(unitId)}
           />
         )}
         {tab === 'quiz' && (
           <QuizTab
             unit={unit}
-            completed={progress?.quizCompleted ?? false}
-            onComplete={() => { markQuizCompleted(unitId); refreshProgress(); }}
+            completed={unitProgress.quizCompleted}
+            onComplete={() => markQuizCompleted(unitId)}
+            onWrongAnswers={(wrongs) => addWrongAnswers(wrongs, unitId)}
           />
         )}
       </div>
@@ -113,11 +111,10 @@ function LearnTab({ unit, completed, onComplete }: {
   completed: boolean;
   onComplete: () => void;
 }) {
-  const [volume, setVolumeState] = useState(DEFAULT_VOLUME);
-
-  useEffect(() => {
-    setVolumeState(getVolume());
-  }, []);
+  const [volume, setVolumeState] = useState(() => {
+    if (typeof window !== 'undefined') return getVolume();
+    return DEFAULT_VOLUME;
+  });
 
   function handleVolumeChange(e: React.ChangeEvent<HTMLInputElement>) {
     const v = parseFloat(e.target.value);
@@ -190,10 +187,11 @@ function LearnTab({ unit, completed, onComplete }: {
   );
 }
 
-function QuizTab({ unit, completed, onComplete }: {
+function QuizTab({ unit, completed, onComplete, onWrongAnswers }: {
   unit: typeof curriculum[0];
   completed: boolean;
   onComplete: () => void;
+  onWrongAnswers: (phrases: typeof unit.phrases) => void;
 }) {
   const [started, setStarted] = useState(false);
 
@@ -227,7 +225,7 @@ function QuizTab({ unit, completed, onComplete }: {
       phrases={unit.phrases}
       dialogLines={unit.dialogLines}
       onComplete={() => { onComplete(); setStarted(false); }}
-      onWrongAnswers={(wrongs) => addWrongAnswers(wrongs, unit.id)}
+      onWrongAnswers={(wrongs) => onWrongAnswers(wrongs)}
     />
   );
 }

@@ -1,27 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { curriculum, DialogLine } from '@/data/curriculum';
-import { getFavoritePhrases } from '@/lib/favorites';
-import { addWrongAnswers } from '@/lib/wrongAnswers';
+import { curriculum, DialogLine, Phrase } from '@/data/curriculum';
+import { useData } from '@/contexts/DataContext';
+import { useState } from 'react';
 import PhraseCard from '@/components/PhraseCard';
 import QuizEngine from '@/components/QuizEngine';
 
 export default function FavoritesPage() {
   const router = useRouter();
-  const [items, setItems] = useState<ReturnType<typeof getFavoritePhrases>>([]);
+  const { favorites, addWrongAnswers } = useData();
   const [mode, setMode] = useState<'list' | 'quiz'>('list');
-  const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    setItems(getFavoritePhrases(curriculum));
-    setReady(true);
-  }, []);
+  const items = curriculum.flatMap(unit =>
+    unit.phrases
+      .filter(p => favorites.includes(p.japanese))
+      .map(phrase => ({ phrase, unitId: unit.id, unitTitle: unit.titleKo }))
+  );
 
-  if (!ready) return null;
-
-  const phrases = items.map(i => i.phrase);
+  const phrases: Phrase[] = items.map(i => i.phrase);
   const dialogLines: DialogLine[] = [];
 
   if (items.length === 0) {
@@ -82,7 +79,6 @@ export default function FavoritesPage() {
           ✏️ 퀴즈로 연습하기
         </button>
 
-        {/* Unit별로 그룹핑 */}
         {Array.from(new Set(items.map(i => i.unitId))).map(unitId => {
           const unitItems = items.filter(i => i.unitId === unitId);
           const unitTitle = unitItems[0].unitTitle;

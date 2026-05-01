@@ -1,25 +1,18 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Phrase, DialogLine } from '@/data/curriculum';
-import { getWrongAnswers, addWrongAnswers, removeWrongAnswer, WrongAnswer } from '@/lib/wrongAnswers';
+import { useData } from '@/contexts/DataContext';
+import { WrongAnswer } from '@/lib/wrongAnswers';
+import { useState } from 'react';
 import QuizEngine from '@/components/QuizEngine';
 
 export default function WrongPage() {
   const router = useRouter();
-  const [wrongs, setWrongs] = useState<WrongAnswer[]>([]);
+  const { wrongAnswers, addWrongAnswers, removeWrongAnswer } = useData();
   const [started, setStarted] = useState(false);
-  const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    const all = getWrongAnswers();
-    setWrongs(Object.values(all).sort((a, b) => b.count - a.count));
-    setReady(true);
-  }, []);
-
-  if (!ready) return null;
-
+  const wrongs: WrongAnswer[] = Object.values(wrongAnswers).sort((a, b) => b.count - a.count);
   const phrases: Phrase[] = wrongs.map(w => w.phrase);
   const dialogLines: DialogLine[] = [];
 
@@ -66,10 +59,7 @@ export default function WrongPage() {
                   <div className="text-xs text-gray-400">{w.phrase.korean}</div>
                 </div>
                 <button
-                  onClick={() => {
-                    removeWrongAnswer(w.phrase.japanese);
-                    setWrongs(prev => prev.filter(x => x.phrase.japanese !== w.phrase.japanese));
-                  }}
+                  onClick={() => removeWrongAnswer(w.phrase.japanese)}
                   className="text-xs text-gray-300 hover:text-red-400 active:scale-95 transition-all"
                   title="삭제"
                 >
@@ -105,7 +95,6 @@ export default function WrongPage() {
           dialogLines={dialogLines}
           onComplete={() => router.push('/')}
           onWrongAnswers={(newWrongs) => {
-            // 이번에도 틀린 것만 카운트 증가, 맞힌 것은 제거
             const wrongSet = new Set(newWrongs.map(p => p.japanese));
             phrases.forEach(p => {
               if (!wrongSet.has(p.japanese)) removeWrongAnswer(p.japanese);
