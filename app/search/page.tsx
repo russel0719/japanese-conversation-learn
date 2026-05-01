@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { curriculum, Phrase } from '@/data/curriculum';
 import PhraseCard from '@/components/PhraseCard';
 
@@ -22,7 +21,6 @@ const allPhrases: SearchResult[] = curriculum.flatMap(unit =>
 );
 
 export default function SearchPage() {
-  const router = useRouter();
   const [query, setQuery] = useState('');
 
   const q = query.trim().toLowerCase();
@@ -33,32 +31,29 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] flex flex-col">
-      <div className="bg-indigo-600 text-white px-4 pt-10 pb-4 sticky top-0 z-10">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#111113] flex flex-col">
+      <div className="bg-teal-600 text-white px-4 pt-10 pb-4 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto">
-          <button onClick={() => router.back()} className="text-indigo-200 text-sm mb-3 flex items-center gap-1 active:opacity-70">
-            ← 뒤로
-          </button>
-          <div className="text-xl font-bold mb-3">🔍 표현 검색</div>
+          <div className="text-xl font-semibold mb-3">🔍 표현 검색</div>
           <input
             type="text"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="한국어, 일본어, 로마자로 검색..."
             autoFocus
-            className="w-full px-4 py-2.5 rounded-xl text-sm text-gray-800 bg-white placeholder-gray-400 outline-none"
+            className="w-full h-11 px-4 rounded-full text-sm text-gray-800 bg-white placeholder-gray-400 outline-none border border-transparent focus:border-teal-300"
           />
         </div>
       </div>
 
       <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-5">
         {q.length === 0 ? (
-          <div className="text-center text-gray-400 text-sm py-16">
+          <div className="text-center text-gray-400 dark:text-gray-600 text-sm py-16">
             <div className="text-4xl mb-3">🔍</div>
             전체 {allPhrases.length}개 표현을 검색할 수 있어요
           </div>
         ) : results.length === 0 ? (
-          <div className="text-center text-gray-400 text-sm py-16">
+          <div className="text-center text-gray-400 dark:text-gray-600 text-sm py-16">
             <div className="text-4xl mb-3">🤔</div>
             <div>&quot;{query}&quot;에 해당하는 표현이 없어요</div>
           </div>

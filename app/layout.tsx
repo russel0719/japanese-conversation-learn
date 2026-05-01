@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { DataProvider } from '@/contexts/DataContext';
+import BottomNav from '@/components/BottomNav';
+import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
 
 export const metadata: Metadata = {
   title: '일본어 회화 학습',
@@ -20,15 +22,24 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#1a2e5a',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#2563eb' },
+    { media: '(prefers-color-scheme: dark)', color: '#0b0b0c' },
+  ],
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ko">
-      <body className="antialiased min-h-screen">
-          <AuthProvider><DataProvider>{children}</DataProvider></AuthProvider>
-        </body>
+      <body className="antialiased min-h-screen pb-[60px]">
+        <AuthProvider>
+          <DataProvider>
+            {children}
+            <BottomNav />
+            <ServiceWorkerRegistrar />
+          </DataProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

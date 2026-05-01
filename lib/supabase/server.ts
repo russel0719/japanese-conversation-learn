@@ -7,6 +7,7 @@ export const createClient = async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://placeholder.supabase.co',
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? 'placeholder-key',
     {
+      db: { schema: 'app_japanese_learn' },
       cookies: {
         getAll: () => cookieStore.getAll(),
         setAll: (cookiesToSet) => {

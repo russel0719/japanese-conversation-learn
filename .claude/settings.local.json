@@ -1,12 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "WebSearch",
-      "Bash(ollama --version)",
-      "Bash(nvidia-smi)",
       "Bash(npx:*)",
-      "Bash(npm run:*)",
-      "Bash(curl -sv http://localhost:3000/)"
+      "Bash(npm run:*)"
     ]
   }
 }

@@ -32,10 +32,6 @@ export default function PhraseCard({ phrase, index }: PhraseCardProps) {
 
   const fav = favorites.includes(phrase.japanese);
 
-  function handleFav() {
-    toggleFavorite(phrase.japanese);
-  }
-
   function playTTS() {
     if (playing) return;
     speakJapanese(
@@ -46,19 +42,19 @@ export default function PhraseCard({ phrase, index }: PhraseCardProps) {
   }
 
   return (
-    <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center gap-3">
-      <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm font-bold flex-shrink-0">
+    <div className="bg-white dark:bg-[#0b0b0c] rounded-xl p-4 border border-gray-200 dark:border-gray-800 flex items-center gap-3">
+      <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
         {index + 1}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="text-lg font-medium text-gray-900">{phrase.japanese}</div>
-        <div className="text-xs text-indigo-500 mt-0.5">{phrase.romaji}</div>
-        <div className="text-sm text-gray-500 mt-0.5">{phrase.korean}</div>
+        <div className="text-lg font-medium text-gray-900 dark:text-gray-100">{phrase.japanese}</div>
+        <div className="text-xs text-blue-500 mt-0.5">{phrase.romaji}</div>
+        <div className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{phrase.korean}</div>
       </div>
       <button
-        onClick={handleFav}
-        className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-95
-          ${fav ? 'bg-yellow-50 text-yellow-400' : 'bg-gray-50 text-gray-300 hover:text-yellow-300'}`}
+        onClick={() => toggleFavorite(phrase.japanese)}
+        className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all active:scale-95
+          ${fav ? 'bg-yellow-50 dark:bg-yellow-950 text-yellow-400' : 'bg-gray-50 dark:bg-gray-900 text-gray-300 dark:text-gray-600'}`}
         title="즐겨찾기"
       >
         {fav ? '★' : '☆'}
@@ -66,10 +62,10 @@ export default function PhraseCard({ phrase, index }: PhraseCardProps) {
       <button
         onClick={playTTS}
         disabled={playing}
-        className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all
+        className={`w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all
           ${playing
-            ? 'bg-indigo-100 text-indigo-400 animate-pulse'
-            : 'bg-indigo-50 text-indigo-600 active:scale-95 hover:bg-indigo-100'
+            ? 'bg-blue-100 dark:bg-blue-950 text-blue-400 animate-pulse'
+            : 'bg-blue-50 dark:bg-blue-950 text-blue-600 dark:text-blue-400 active:scale-95'
           }`}
         title="발음 듣기"
       >

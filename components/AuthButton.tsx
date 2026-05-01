@@ -13,7 +13,7 @@ export default function AuthButton() {
     return (
       <button
         onClick={signInWithGoogle}
-        className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium px-3 py-1.5 rounded-full transition-colors active:scale-95"
+        className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-medium px-3 py-2 rounded-full transition-colors active:scale-95 min-h-[44px]"
       >
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -33,9 +33,9 @@ export default function AuthButton() {
     <div className="flex items-center gap-2">
       {avatarUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={avatarUrl} alt={name} className="w-7 h-7 rounded-full border-2 border-white/40" />
+        <img src={avatarUrl} alt={name} className="w-8 h-8 rounded-full border-2 border-white/40" />
       ) : (
-        <div className="w-7 h-7 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold text-white">
+        <div className="w-8 h-8 rounded-full bg-white/30 flex items-center justify-center text-xs font-bold text-white">
           {name?.charAt(0).toUpperCase()}
         </div>
       )}
@@ -43,7 +43,7 @@ export default function AuthButton() {
       <button
         onClick={async () => { setSigningOut(true); await signOut(); setSigningOut(false); }}
         disabled={signingOut}
-        className="text-white/60 hover:text-white text-xs transition-colors active:scale-95"
+        className="text-white/60 hover:text-white text-xs transition-colors active:scale-95 px-2 py-1"
         title="로그아웃"
       >
         {signingOut ? '...' : '로그아웃'}

@@ -42,36 +42,36 @@ export default function UnitPageClient({ params }: { params: { id: string } }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#111113] flex flex-col">
       {/* 헤더 */}
-      <div className="bg-indigo-600 text-white px-4 pt-10 pb-4">
+      <div className="bg-blue-600 text-white px-4 pt-10 pb-4">
         <div className="max-w-2xl mx-auto">
           <button
             onClick={() => router.back()}
-            className="text-indigo-200 text-sm mb-3 flex items-center gap-1 active:opacity-70"
+            className="text-blue-200 text-sm mb-3 flex items-center gap-1 active:opacity-70 min-h-[44px]"
           >
             ← 목록으로
           </button>
           <div className="flex items-center gap-3">
             <span className="text-3xl">{unit.emoji}</span>
             <div>
-              <div className="text-xs text-indigo-200">Unit {unit.id}</div>
-              <div className="text-xl font-bold">{unit.titleKo}</div>
+              <div className="text-xs text-blue-200">Unit {unit.id}</div>
+              <div className="text-xl font-semibold">{unit.titleKo}</div>
             </div>
           </div>
-          <p className="text-indigo-200 text-xs mt-2">{unit.description}</p>
+          <p className="text-blue-200 text-xs mt-2">{unit.description}</p>
         </div>
       </div>
 
       {/* 탭 */}
-      <div className="bg-white border-b border-gray-100 sticky top-0 z-10">
+      <div className="bg-white dark:bg-[#0b0b0c] border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
         <div className="max-w-2xl mx-auto flex">
           {tabs.map(t => (
             <button
               key={t.key}
               onClick={() => setTab(t.key)}
-              className={`flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5
-                ${tab === t.key ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-400'}`}
+              className={`flex-1 py-3 text-sm font-medium transition-colors flex items-center justify-center gap-1.5 min-h-[44px]
+                ${tab === t.key ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400' : 'text-gray-400 dark:text-gray-600'}`}
             >
               <span>{t.emoji}</span>
               <span>{t.label}</span>
@@ -125,7 +125,7 @@ function LearnTab({ unit, completed, onComplete }: {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between mb-4">
-        <div className="text-sm text-gray-500">
+        <div className="text-sm text-gray-500 dark:text-gray-400">
           핵심 표현 {unit.phrases.length}개를 배워봅시다.
         </div>
         <div className="flex items-center gap-2">
@@ -137,7 +137,7 @@ function LearnTab({ unit, completed, onComplete }: {
             step="0.1"
             value={volume}
             onChange={handleVolumeChange}
-            className="w-20 h-1.5 accent-indigo-600 cursor-pointer"
+            className="w-20 h-1.5 accent-blue-600 cursor-pointer"
           />
         </div>
       </div>
@@ -148,23 +148,25 @@ function LearnTab({ unit, completed, onComplete }: {
 
       {/* 예시 대화 */}
       <div className="mt-6">
-        <div className="text-sm font-semibold text-gray-700 mb-3">💬 예시 대화</div>
-        <div className="bg-white rounded-2xl p-4 space-y-4 border border-gray-100 shadow-sm">
+        <div className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">💬 예시 대화</div>
+        <div className="bg-white dark:bg-[#0b0b0c] rounded-xl p-4 space-y-4 border border-gray-200 dark:border-gray-800">
           {unit.dialogLines.map((line, i) => (
             <div key={i} className={`flex gap-2 ${line.speaker === 'B' ? 'justify-end' : ''}`}>
               {line.speaker === 'A' && (
-                <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">A</div>
+                <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-950 text-blue-600 dark:text-blue-400 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">A</div>
               )}
               <div className={`max-w-[80%] ${line.speaker === 'B' ? 'text-right' : ''}`}>
-                <div className={`rounded-2xl px-3 py-2 text-sm inline-block
-                  ${line.speaker === 'A' ? 'bg-gray-100 text-gray-800 rounded-tl-sm' : 'bg-indigo-600 text-white rounded-tr-sm'}`}>
+                <div className={`rounded-xl px-3 py-2 text-sm inline-block
+                  ${line.speaker === 'A'
+                    ? 'bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded-tl-sm'
+                    : 'bg-blue-600 text-white rounded-tr-sm'}`}>
                   {line.japanese}
                 </div>
-                <div className="text-xs text-indigo-400 mt-0.5 px-1">{line.romaji}</div>
-                <div className="text-xs text-gray-400 px-1">{line.korean}</div>
+                <div className="text-xs text-blue-400 mt-0.5 px-1">{line.romaji}</div>
+                <div className="text-xs text-gray-400 dark:text-gray-600 px-1">{line.korean}</div>
               </div>
               {line.speaker === 'B' && (
-                <div className="w-6 h-6 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">B</div>
+                <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">B</div>
               )}
             </div>
           ))}
@@ -174,12 +176,12 @@ function LearnTab({ unit, completed, onComplete }: {
       {!completed ? (
         <button
           onClick={onComplete}
-          className="w-full mt-4 py-3 bg-indigo-600 text-white rounded-2xl font-semibold active:scale-[0.98] transition-transform"
+          className="w-full mt-4 py-3 bg-blue-600 text-white rounded-full font-semibold active:scale-[0.98] transition-transform min-h-[44px]"
         >
           학습 완료 ✓
         </button>
       ) : (
-        <div className="w-full mt-4 py-3 bg-green-50 text-green-600 rounded-2xl font-semibold text-center border border-green-200">
+        <div className="w-full mt-4 py-3 bg-green-50 dark:bg-green-950 text-green-600 dark:text-green-400 rounded-full font-semibold text-center border border-green-200 dark:border-green-900">
           ✓ 학습 완료!
         </div>
       )}
@@ -200,11 +202,11 @@ function QuizTab({ unit, completed, onComplete, onWrongAnswers }: {
       <div className="flex flex-col items-center gap-4 py-12">
         <div className="text-5xl">✏️</div>
         {completed && (
-          <div className="text-sm text-green-600 font-medium bg-green-50 px-4 py-2 rounded-full">
+          <div className="text-sm text-green-600 dark:text-green-400 font-medium bg-green-50 dark:bg-green-950 px-4 py-2 rounded-full border border-green-200 dark:border-green-900">
             ✓ 이미 완료했어요!
           </div>
         )}
-        <p className="text-gray-500 text-center text-sm">
+        <p className="text-gray-500 dark:text-gray-400 text-center text-sm">
           4가지 유형으로 배운 표현을 테스트해봐요!<br />
           <span className="text-xs text-gray-400 mt-1 block">
             한→발음 · 발음→한 · 듣기→한 · 빈칸채우기
@@ -212,7 +214,7 @@ function QuizTab({ unit, completed, onComplete, onWrongAnswers }: {
         </p>
         <button
           onClick={() => setStarted(true)}
-          className="px-8 py-3 bg-indigo-600 text-white rounded-2xl font-semibold active:scale-95 transition-transform"
+          className="px-8 py-3 bg-blue-600 text-white rounded-full font-semibold active:scale-95 transition-transform min-h-[44px]"
         >
           {completed ? '다시 풀기' : '퀴즈 시작'}
         </button>

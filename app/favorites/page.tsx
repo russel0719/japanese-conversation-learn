@@ -23,13 +23,13 @@ export default function FavoritesPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-[#f8f9ff] flex flex-col items-center justify-center gap-4 px-6">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#111113] flex flex-col items-center justify-center gap-4 px-6">
         <div className="text-5xl">⭐</div>
-        <div className="text-xl font-bold text-gray-800">즐겨찾기가 없어요</div>
-        <div className="text-sm text-gray-500 text-center">표현 카드의 ☆ 버튼을 눌러 즐겨찾기에 추가하세요.</div>
+        <div className="text-xl font-semibold text-gray-800 dark:text-gray-100">즐겨찾기가 없어요</div>
+        <div className="text-sm text-gray-500 dark:text-gray-400 text-center">표현 카드의 ☆ 버튼을 눌러 즐겨찾기에 추가하세요.</div>
         <button
           onClick={() => router.back()}
-          className="mt-2 px-6 py-2.5 bg-indigo-600 text-white rounded-2xl font-semibold active:scale-95 transition-transform text-sm"
+          className="mt-2 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold active:scale-95 transition-transform text-sm min-h-[44px]"
         >
           돌아가기
         </button>
@@ -39,13 +39,13 @@ export default function FavoritesPage() {
 
   if (mode === 'quiz') {
     return (
-      <div className="min-h-screen bg-[#f8f9ff] flex flex-col">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#111113] flex flex-col">
         <div className="bg-yellow-500 text-white px-4 pt-10 pb-4">
           <div className="max-w-2xl mx-auto">
-            <button onClick={() => setMode('list')} className="text-yellow-100 text-sm mb-3 flex items-center gap-1 active:opacity-70">
+            <button onClick={() => setMode('list')} className="text-yellow-100 text-sm mb-3 flex items-center gap-1 active:opacity-70 min-h-[44px]">
               ← 목록으로
             </button>
-            <div className="text-xl font-bold">⭐ 즐겨찾기 퀴즈</div>
+            <div className="text-xl font-semibold">⭐ 즐겨찾기 퀴즈</div>
           </div>
         </div>
         <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-5">
@@ -61,20 +61,17 @@ export default function FavoritesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9ff] flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#111113] flex flex-col">
       <div className="bg-yellow-500 text-white px-4 pt-10 pb-4">
         <div className="max-w-2xl mx-auto">
-          <button onClick={() => router.back()} className="text-yellow-100 text-sm mb-3 flex items-center gap-1 active:opacity-70">
-            ← 뒤로
-          </button>
-          <div className="text-xl font-bold">⭐ 즐겨찾기</div>
+          <div className="text-xl font-semibold">⭐ 즐겨찾기</div>
           <div className="text-yellow-100 text-xs mt-1">{items.length}개의 표현</div>
         </div>
       </div>
       <div className="flex-1 max-w-2xl mx-auto w-full px-4 py-5">
         <button
           onClick={() => setMode('quiz')}
-          className="w-full mb-5 py-3 bg-yellow-500 text-white rounded-2xl font-semibold active:scale-95 transition-transform text-sm"
+          className="w-full mb-5 py-3 bg-yellow-500 text-white rounded-full font-semibold active:scale-95 transition-transform text-sm min-h-[44px]"
         >
           ✏️ 퀴즈로 연습하기
         </button>

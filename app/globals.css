@@ -7,7 +7,15 @@
 }
 
 body {
-  background-color: #f8f9ff;
-  color: #1a1a2e;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background-color: #f9fafb;
+  color: #111827;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  line-height: 1.5;
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #111113;
+    color: #f9fafb;
+  }
 }

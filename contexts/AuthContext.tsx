@@ -1,13 +1,15 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { User, SupabaseClient } from '@supabase/supabase-js';
+import { User } from '@supabase/supabase-js';
 import { createClient } from '@/lib/supabase/client';
+
+type SupabaseClientType = ReturnType<typeof createClient>;
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  supabase: SupabaseClient;
+  supabase: SupabaseClientType;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -26,8 +28,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setUser(session?.user ?? null);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+
+      // 신규 로그인 시 app_id, role 메타데이터 설정
+      if (event === 'SIGNED_IN' && currentUser) {
+        const meta = currentUser.user_metadata;
+        if (!meta?.app_id) {
+          await supabase.auth.updateUser({
+            data: { app_id: 'japanese_learn', role: 'learner' },
+          });
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
